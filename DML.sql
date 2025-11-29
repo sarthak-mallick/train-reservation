@@ -139,7 +139,6 @@ INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of
 VALUES ('Christopher', 'Alan', 'Harris', DATE '1994-11-11', '486 Redwood Ln', 'Portland', 'OR', '97201', 'christopher.harris@email.com', '503-555-0115');
 
 COMMIT;
-DBMS_OUTPUT.PUT_LINE('CRS_PASSENGER: 15 rows inserted.');
 
 -- Populate CRS_RESERVATION (Sample bookings)
 -- Mix of CONFIRMED, WAITLISTED, and CANCELLED
