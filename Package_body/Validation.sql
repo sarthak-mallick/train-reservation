@@ -1,12 +1,8 @@
--- Package Body: PKG_VALIDATION
--- Purpose: Implementation of validation logic for business rules
--- Owner: CRS_ADMIN
-
 CREATE OR REPLACE PACKAGE BODY PKG_VALIDATION AS
 
-/**
-    * Comprehensive validation for booking request
-    */
+/* ============================================================
+   VALIDATE BOOKING REQUEST
+   ============================================================ */
 FUNCTION validate_booking_request(
     p_train_id IN NUMBER,
     p_passenger_id IN NUMBER,
@@ -14,41 +10,105 @@ FUNCTION validate_booking_request(
     p_seat_class IN VARCHAR2,
     p_booking_date IN DATE DEFAULT SYSDATE
 ) RETURN VARCHAR2 AS
-    v_train_count NUMBER;
-    v_passenger_count NUMBER;
-    v_day_of_week VARCHAR2(10);
-    v_schedule_count NUMBER;
+    v_train_count       NUMBER;
+    v_passenger_count   NUMBER;
+    v_day_of_week       VARCHAR2(10);
+    v_sched_count       NUMBER;
 BEGIN
-    -- TODO: Implement comprehensive validation
+    --------------------------------------------------------------------
     -- 1. Check if train exists
+    --------------------------------------------------------------------
+    SELECT COUNT(*) INTO v_train_count
+    FROM CRS_TRAIN_INFO
+    WHERE train_id = p_train_id;
+
+    IF v_train_count = 0 THEN
+        RETURN 'Train does not exist.';
+    END IF;
+
+    --------------------------------------------------------------------
     -- 2. Check if passenger exists
-    -- 3. Check if seat class is valid (FC or ECON)
-    -- 4. Check if travel date is in the future
-    -- 5. Check if travel date is within booking window (7 days)
-    -- 6. Check if train operates on that day
-    -- 7. Return 'OK' if all validations pass, error message otherwise
-    
-    RETURN 'OK'; -- Placeholder
+    --------------------------------------------------------------------
+    SELECT COUNT(*) INTO v_passenger_count
+    FROM CRS_PASSENGER
+    WHERE passenger_id = p_passenger_id;
+
+    IF v_passenger_count = 0 THEN
+        RETURN 'Passenger does not exist.';
+    END IF;
+
+    --------------------------------------------------------------------
+    -- 3. Validate seat class
+    --------------------------------------------------------------------
+    IF p_seat_class NOT IN ('FC', 'ECON') THEN
+        RETURN 'Invalid seat class.';
+    END IF;
+
+    --------------------------------------------------------------------
+    -- 4. Check if travel date is in future
+    --------------------------------------------------------------------
+    IF TRUNC(p_travel_date) < TRUNC(p_booking_date) THEN
+        RETURN 'Travel date must be in the future.';
+    END IF;
+
+    --------------------------------------------------------------------
+    -- 5. Travel date within 7-day booking window
+    --------------------------------------------------------------------
+    IF TRUNC(p_travel_date) > TRUNC(p_booking_date) + 7 THEN
+        RETURN 'Travel date exceeds 7-day booking window.';
+    END IF;
+
+    --------------------------------------------------------------------
+    -- 6. Check train runs on the travel day
+    --------------------------------------------------------------------
+    v_day_of_week := TO_CHAR(p_travel_date, 'DAY');
+    v_day_of_week := RTRIM(v_day_of_week);
+
+    SELECT COUNT(*)
+    INTO v_sched_count
+    FROM CRS_DAY_SCHEDULE ds
+    JOIN CRS_TRAIN_SCHEDULE ts ON ts.sch_id = ds.sch_id
+    WHERE UPPER(ds.day_of_week) = UPPER(v_day_of_week)
+      AND ts.train_id = p_train_id
+      AND ts.is_in_service = 'Y';
+
+    IF v_sched_count = 0 THEN
+        RETURN 'Train does not operate on this day.';
+    END IF;
+
+    RETURN 'OK';
+
 EXCEPTION
     WHEN OTHERS THEN
         RETURN 'Error: ' || SQLERRM;
 END validate_booking_request;
 
-/**
-    * Validate cancellation request
-    */
+
+/* ============================================================
+   VALIDATE CANCELLATION
+   ============================================================ */
 FUNCTION validate_cancellation(
     p_booking_id IN NUMBER
 ) RETURN VARCHAR2 AS
     v_booking_count NUMBER;
-    v_seat_status VARCHAR2(20);
+    v_seat_status   VARCHAR2(20);
 BEGIN
-    -- TODO: Implement cancellation validation
+    --------------------------------------------------------------------
     -- 1. Check if booking exists
-    -- 2. Check if booking is not already CANCELLED
-    -- 3. Return 'OK' if valid, error message otherwise
-    
-    RETURN 'OK'; -- Placeholder
+    --------------------------------------------------------------------
+    SELECT seat_status INTO v_seat_status
+    FROM CRS_RESERVATION
+    WHERE booking_id = p_booking_id;
+
+    --------------------------------------------------------------------
+    -- 2. Check if already cancelled
+    --------------------------------------------------------------------
+    IF v_seat_status = 'CANCELLED' THEN
+        RETURN 'Booking already cancelled.';
+    END IF;
+
+    RETURN 'OK';
+
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         RETURN 'Booking does not exist.';
@@ -56,80 +116,108 @@ EXCEPTION
         RETURN 'Error: ' || SQLERRM;
 END validate_cancellation;
 
-/**
-    * Check seat availability status
-    */
+
+/* ============================================================
+   CHECK SEAT AVAILABILITY
+   ============================================================ */
 FUNCTION check_seat_availability(
     p_train_id IN NUMBER,
     p_travel_date IN DATE,
     p_seat_class IN VARCHAR2
 ) RETURN VARCHAR2 AS
     v_available_seats NUMBER;
-    v_waitlist_count NUMBER;
+    v_waitlist NUMBER;
+    C_MAX_WAITLIST CONSTANT NUMBER := 10;
 BEGIN
-    -- TODO: Implement availability check
-    -- 1. Get available seats using get_available_seats
-    -- 2. If available_seats > 0, return 'AVAILABLE'
-    -- 3. Get waitlist count using get_waitlist_count
-    -- 4. If waitlist < C_MAX_WAITLIST_PER_CLASS, return 'WAITLIST_AVAILABLE'
-    -- 5. Otherwise return 'FULL'
-    
-    RETURN 'AVAILABLE'; -- Placeholder
+    v_available_seats := get_available_seats(p_train_id, p_travel_date, p_seat_class);
+
+    IF v_available_seats > 0 THEN
+        RETURN 'AVAILABLE';
+    END IF;
+
+    v_waitlist := get_waitlist_count(p_train_id, p_travel_date, p_seat_class);
+
+    IF v_waitlist < C_MAX_WAITLIST THEN
+        RETURN 'WAITLIST_AVAILABLE';
+    ELSE
+        RETURN 'FULL';
+    END IF;
+
 EXCEPTION
     WHEN OTHERS THEN
         RETURN 'FULL';
 END check_seat_availability;
 
-/**
-    * Get available seat count
-    */
+
+/* ============================================================
+   GET AVAILABLE SEATS
+   ============================================================ */
 FUNCTION get_available_seats(
     p_train_id IN NUMBER,
     p_travel_date IN DATE,
     p_seat_class IN VARCHAR2
 ) RETURN NUMBER AS
     v_total_seats NUMBER;
-    v_confirmed_count NUMBER;
+    v_confirmed NUMBER;
 BEGIN
-    -- TODO: Implement get available seats
-    -- 1. Get total seats for the class from CRS_TRAIN_INFO
-    --    (total_fc_seats or total_econ_seats based on p_seat_class)
-    -- 2. Count CONFIRMED bookings for this train/date/class
-    -- 3. Return (total_seats - confirmed_count)
-    
-    RETURN 0; -- Placeholder
+    --------------------------------------------------------------------
+    -- 1. Get total seats from train master
+    --------------------------------------------------------------------
+    IF p_seat_class = 'FC' THEN
+        SELECT total_fc_seats INTO v_total_seats
+        FROM CRS_TRAIN_INFO WHERE train_id = p_train_id;
+    ELSE
+        SELECT total_econ_seats INTO v_total_seats
+        FROM CRS_TRAIN_INFO WHERE train_id = p_train_id;
+    END IF;
+
+    --------------------------------------------------------------------
+    -- 2. Count confirmed seats
+    --------------------------------------------------------------------
+    SELECT COUNT(*) INTO v_confirmed
+    FROM CRS_RESERVATION
+    WHERE train_id = p_train_id
+      AND travel_date = p_travel_date
+      AND seat_class = p_seat_class
+      AND seat_status = 'CONFIRMED';
+
+    RETURN v_total_seats - v_confirmed;
+
 EXCEPTION
     WHEN OTHERS THEN
         RETURN 0;
 END get_available_seats;
 
-/**
-    * Get current waitlist count
-    */
+
+/* ============================================================
+   GET WAITLIST COUNT
+   ============================================================ */
 FUNCTION get_waitlist_count(
     p_train_id IN NUMBER,
     p_travel_date IN DATE,
     p_seat_class IN VARCHAR2
 ) RETURN NUMBER AS
-    v_waitlist_count NUMBER;
+    v_wait NUMBER;
 BEGIN
-    -- TODO: Implement get waitlist count
-    -- 1. COUNT bookings WHERE:
-    --    train_id = p_train_id
-    --    travel_date = p_travel_date
-    --    seat_class = p_seat_class
-    --    seat_status = 'WAITLISTED'
-    -- 2. Return count
-    
-    RETURN 0; -- Placeholder
+    SELECT COUNT(*)
+    INTO v_wait
+    FROM CRS_RESERVATION
+    WHERE train_id = p_train_id
+      AND travel_date = p_travel_date
+      AND seat_class = p_seat_class
+      AND seat_status = 'WAITLISTED';
+
+    RETURN v_wait;
+
 EXCEPTION
     WHEN OTHERS THEN
         RETURN 0;
 END get_waitlist_count;
 
-/**
-    * Get next available waitlist position
-    */
+
+/* ============================================================
+   GET NEXT WAITLIST POSITION
+   ============================================================ */
 FUNCTION get_next_waitlist_position(
     p_train_id IN NUMBER,
     p_travel_date IN DATE,
@@ -137,16 +225,16 @@ FUNCTION get_next_waitlist_position(
 ) RETURN NUMBER AS
     v_max_position NUMBER;
 BEGIN
-    -- TODO: Implement get next waitlist position
-    -- 1. SELECT NVL(MAX(waitlist_position), 0) + 1
-    --    FROM CRS_RESERVATION
-    --    WHERE train_id = p_train_id
-    --    AND travel_date = p_travel_date
-    --    AND seat_class = p_seat_class
-    --    AND seat_status = 'WAITLISTED'
-    -- 2. Return next position
-    
-    RETURN 1; -- Placeholder
+    SELECT NVL(MAX(waitlist_position), 0) + 1
+    INTO v_max_position
+    FROM CRS_RESERVATION
+    WHERE train_id = p_train_id
+      AND travel_date = p_travel_date
+      AND seat_class = p_seat_class
+      AND seat_status = 'WAITLISTED';
+
+    RETURN v_max_position;
+
 EXCEPTION
     WHEN OTHERS THEN
         RETURN 1;
