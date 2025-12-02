@@ -1,4 +1,5 @@
 # train-reservation
+## Create users, tables, grants, initial data
 1. (ADMIN) Run Create_Users.sql to create users and assign roles
 2. (CRS_ADMIN) Run DDL.sql to create schema tables
 3. (CRS_ADMIN) Run Grant_Permissions.sql to allow roles access to certain tables

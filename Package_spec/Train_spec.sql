@@ -20,10 +20,10 @@ FUNCTION add_train(
 ) RETURN NUMBER;
 
 /**
-    * Update train details (fare only)
-    * @return TRUE if successful, FALSE otherwise
-    */
-FUNCTION update_train(
+* Update train fare
+* @return TRUE if successful, FALSE otherwise
+*/
+FUNCTION update_fare(
     p_train_id IN NUMBER,
     p_fc_seat_fare IN NUMBER,
     p_econ_seat_fare IN NUMBER,
@@ -46,24 +46,6 @@ PROCEDURE cancel_train_on_date(
 );
 
 /**
- * Mark train schedule as inactive (soft delete)
- * Sets is_in_service = 'N' for all schedules of this train
- */
-PROCEDURE deactivate_train(
-    p_train_id IN NUMBER,
-    p_success OUT BOOLEAN,
-    p_error_msg OUT VARCHAR2
-);
-
-/**
-    * Search train by train number
-    * @return train_id if found, NULL otherwise
-    */
-FUNCTION search_train_by_number(
-    p_train_number IN VARCHAR2
-) RETURN NUMBER;
-
-/**
  * Add train to schedule for a single day
  * @param p_sch_id The schedule ID (1-7 for Mon-Sun)
  */
@@ -84,15 +66,6 @@ PROCEDURE remove_train_from_schedule(
     p_success OUT BOOLEAN,
     p_error_msg OUT VARCHAR2
 );
-
-/**
-    * Check if train operates on specific date
-    * @return TRUE if operates and is in service, FALSE otherwise
-    */
-FUNCTION is_train_operating(
-    p_train_id IN NUMBER,
-    p_travel_date IN DATE
-) RETURN BOOLEAN;
 
 END PKG_TRAIN;
 /

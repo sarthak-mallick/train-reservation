@@ -69,30 +69,5 @@ FUNCTION get_booking_details(
     p_waitlist_position OUT NUMBER
 ) RETURN BOOLEAN;
 
-/**
- * Modify an existing booking
- * Can change: travel date, seat class, and/or train
- * Pass NULL for parameters you don't want to change
- * 
- * @param p_booking_id Booking to modify
- * @param p_new_train_id New train (NULL = no change)
- * @param p_new_travel_date New travel date (NULL = no change)
- * @param p_new_seat_class New seat class (NULL = no change)
- * @param p_success OUT - TRUE if modified successfully
- * @param p_new_status OUT - New status after modification
- * @param p_new_waitlist_position OUT - New position if waitlisted
- * @param p_message OUT - Success or error message
- */
-PROCEDURE modify_booking(
-    p_booking_id IN NUMBER,
-    p_new_train_id IN NUMBER DEFAULT NULL,
-    p_new_travel_date IN DATE DEFAULT NULL,
-    p_new_seat_class IN VARCHAR2 DEFAULT NULL,
-    p_success OUT BOOLEAN,
-    p_new_status OUT VARCHAR2,
-    p_new_waitlist_position OUT NUMBER,
-    p_message OUT VARCHAR2
-);
-
 END PKG_BOOKING;
 /
