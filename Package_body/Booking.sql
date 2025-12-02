@@ -129,8 +129,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_BOOKING AS
             p_booking_id := NULL;
             p_status := 'FAILED';
             
-            CASE SQLCODE
-                WHEN C_ERR_VALIDATION_FAILED, C_ERR_NO_AVAILABILITY THEN
+            CASE WHEN SQLCODE IN
+                (C_ERR_VALIDATION_FAILED, C_ERR_NO_AVAILABILITY) THEN
                     p_message := SQLERRM;
                 ELSE
                     p_message := 'Booking error: ' || SQLERRM;
@@ -236,8 +236,8 @@ CREATE OR REPLACE PACKAGE BODY PKG_BOOKING AS
             ROLLBACK;
             p_success := FALSE;
             
-            CASE SQLCODE
-                WHEN C_ERR_VALIDATION_FAILED, C_ERR_BOOKING_NOT_FOUND THEN
+            CASE WHEN SQLCODE IN
+                (C_ERR_VALIDATION_FAILED, C_ERR_BOOKING_NOT_FOUND) THEN
                     p_message := SQLERRM;
                 ELSE
                     p_message := 'Cancellation error: ' || SQLERRM;
