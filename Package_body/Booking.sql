@@ -61,8 +61,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_BOOKING AS
             );
             
         ELSE
-            RAISE_APPLICATION_ERROR(C_ERR_NO_AVAILABILITY, 
-                'No seats or waitlist available. Booking failed.');
+            RAISE_APPLICATION_ERROR(C_ERR_NO_AVAILABILITY, 'No seats or waitlist available. Booking failed.');
         END IF;
     END validate_and_check_availability;
 
@@ -131,9 +130,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_BOOKING AS
             p_status := 'FAILED';
             
             CASE SQLCODE
-                WHEN C_ERR_VALIDATION_FAILED THEN
-                    p_message := SQLERRM;
-                WHEN C_ERR_NO_AVAILABILITY THEN
+                WHEN C_ERR_VALIDATION_FAILED, C_ERR_NO_AVAILABILITY THEN
                     p_message := SQLERRM;
                 ELSE
                     p_message := 'Booking error: ' || SQLERRM;
@@ -175,8 +172,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_BOOKING AS
             WHERE booking_id = p_booking_id;
         EXCEPTION
             WHEN NO_DATA_FOUND THEN
-                RAISE_APPLICATION_ERROR(C_ERR_BOOKING_NOT_FOUND, 
-                    'Booking ID ' || p_booking_id || ' not found.');
+                RAISE_APPLICATION_ERROR(C_ERR_BOOKING_NOT_FOUND, 'Booking ID ' || p_booking_id || ' not found.');
         END;
         
         -- Cancel the booking
@@ -241,9 +237,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_BOOKING AS
             p_success := FALSE;
             
             CASE SQLCODE
-                WHEN C_ERR_VALIDATION_FAILED THEN
-                    p_message := SQLERRM;
-                WHEN C_ERR_BOOKING_NOT_FOUND THEN
+                WHEN C_ERR_VALIDATION_FAILED, C_ERR_BOOKING_NOT_FOUND THEN
                     p_message := SQLERRM;
                 ELSE
                     p_message := 'Cancellation error: ' || SQLERRM;
@@ -286,168 +280,6 @@ CREATE OR REPLACE PACKAGE BODY PKG_BOOKING AS
         WHEN OTHERS THEN
             RETURN FALSE;
     END get_booking_details;
-    
-    /**
-     * Modify an existing booking
-     */
-    PROCEDURE modify_booking(
-        p_booking_id IN NUMBER,
-        p_new_train_id IN NUMBER DEFAULT NULL,
-        p_new_travel_date IN DATE DEFAULT NULL,
-        p_new_seat_class IN VARCHAR2 DEFAULT NULL,
-        p_success OUT BOOLEAN,
-        p_new_status OUT VARCHAR2,
-        p_new_waitlist_position OUT NUMBER,
-        p_message OUT VARCHAR2
-    ) AS
-        -- Current booking details
-        v_current_passenger_id NUMBER;
-        v_current_train_id NUMBER;
-        v_current_travel_date DATE;
-        v_current_seat_class VARCHAR2(10);
-        v_current_status VARCHAR2(20);
-        v_current_waitlist NUMBER;
-        
-        -- New booking details
-        v_final_train_id NUMBER;
-        v_final_travel_date DATE;
-        v_final_seat_class VARCHAR2(10);
-        
-        v_found BOOLEAN;
-    BEGIN
-        -- Initialize OUT parameters
-        p_success := FALSE;
-        p_new_status := NULL;
-        p_new_waitlist_position := NULL;
-        p_message := NULL;
-        
-        -- Get current booking details
-        v_found := get_booking_details(
-            p_booking_id => p_booking_id,
-            p_passenger_id => v_current_passenger_id,
-            p_train_id => v_current_train_id,
-            p_travel_date => v_current_travel_date,
-            p_seat_class => v_current_seat_class,
-            p_seat_status => v_current_status,
-            p_waitlist_position => v_current_waitlist
-        );
-        
-        IF NOT v_found THEN
-            RAISE_APPLICATION_ERROR(C_ERR_BOOKING_NOT_FOUND, 
-                'Booking ID ' || p_booking_id || ' not found.');
-        END IF;
-        
-        -- Check if booking can be modified
-        IF v_current_status = PKG_VALIDATION.C_STATUS_CANCELLED THEN
-            RAISE_APPLICATION_ERROR(C_ERR_ALREADY_CANCELLED, 
-                'Cannot modify a cancelled booking.');
-        END IF;
-        
-        -- Determine final values
-        v_final_train_id := NVL(p_new_train_id, v_current_train_id);
-        v_final_travel_date := NVL(p_new_travel_date, v_current_travel_date);
-        v_final_seat_class := NVL(p_new_seat_class, v_current_seat_class);
-        
-        -- Check if anything is changing
-        IF v_final_train_id = v_current_train_id 
-           AND v_final_travel_date = v_current_travel_date
-           AND v_final_seat_class = v_current_seat_class THEN
-            RAISE_APPLICATION_ERROR(C_ERR_NO_CHANGES, 
-                'No changes detected. Booking remains unchanged.');
-        END IF;
-        
-        -- Validate and check availability
-        validate_and_check_availability(
-            p_passenger_id => v_current_passenger_id,
-            p_train_id => v_final_train_id,
-            p_travel_date => v_final_travel_date,
-            p_seat_class => v_final_seat_class,
-            p_status => p_new_status,
-            p_waitlist_position => p_new_waitlist_position
-        );
-        
-        -- Update the booking
-        UPDATE CRS_RESERVATION
-        SET train_id = v_final_train_id,
-            travel_date = v_final_travel_date,
-            seat_class = v_final_seat_class,
-            seat_status = p_new_status,
-            waitlist_position = p_new_waitlist_position,
-            booking_date = SYSDATE
-        WHERE booking_id = p_booking_id;
-        
-        -- If old booking was confirmed, try to promote waitlist
-        IF v_current_status = PKG_VALIDATION.C_STATUS_CONFIRMED 
-           AND (v_final_train_id != v_current_train_id 
-                OR v_final_travel_date != v_current_travel_date 
-                OR v_final_seat_class != v_current_seat_class) THEN
-            
-            DECLARE
-                v_promoted_booking_id NUMBER;
-            BEGIN
-                SELECT booking_id
-                INTO v_promoted_booking_id
-                FROM CRS_RESERVATION
-                WHERE train_id = v_current_train_id
-                  AND travel_date = v_current_travel_date
-                  AND seat_class = v_current_seat_class
-                  AND seat_status = PKG_VALIDATION.C_STATUS_WAITLISTED
-                ORDER BY waitlist_position
-                FETCH FIRST 1 ROW ONLY;
-                
-                -- Promote
-                UPDATE CRS_RESERVATION
-                SET seat_status = PKG_VALIDATION.C_STATUS_CONFIRMED,
-                    waitlist_position = NULL
-                WHERE booking_id = v_promoted_booking_id;
-                
-                -- Reorder remaining
-                UPDATE CRS_RESERVATION
-                SET waitlist_position = waitlist_position - 1
-                WHERE train_id = v_current_train_id
-                  AND travel_date = v_current_travel_date
-                  AND seat_class = v_current_seat_class
-                  AND seat_status = PKG_VALIDATION.C_STATUS_WAITLISTED;
-                
-                p_message := 'Booking modified. Status: ' || p_new_status || '. Booking ID ' || v_promoted_booking_id || ' promoted from old waitlist.';
-            EXCEPTION
-                WHEN NO_DATA_FOUND THEN
-                    p_message := 'Booking modified successfully. Status: ' || p_new_status || '.';
-            END;
-        ELSE
-            p_message := 'Booking modified successfully. Status: ' || p_new_status || '.';
-        END IF;
-        
-        IF p_new_status = PKG_VALIDATION.C_STATUS_WAITLISTED THEN
-            p_message := p_message || ' Waitlist position: ' || p_new_waitlist_position || '.';
-        END IF;
-        
-        COMMIT;
-        p_success := TRUE;
-        
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            p_success := FALSE;
-            
-            CASE SQLCODE
-                WHEN C_ERR_BOOKING_NOT_FOUND THEN
-                    p_message := SQLERRM;
-                WHEN C_ERR_ALREADY_CANCELLED THEN
-                    p_message := SQLERRM;
-                WHEN C_ERR_NO_CHANGES THEN
-                    p_success := TRUE;
-                    p_new_status := v_current_status;
-                    p_new_waitlist_position := v_current_waitlist;
-                    p_message := SQLERRM;
-                WHEN C_ERR_VALIDATION_FAILED THEN
-                    p_message := SQLERRM;
-                WHEN C_ERR_NO_AVAILABILITY THEN
-                    p_message := SQLERRM;
-                ELSE
-                    p_message := 'Modification error: ' || SQLERRM;
-            END CASE;
-    END modify_booking;
 
 END PKG_BOOKING;
 /
