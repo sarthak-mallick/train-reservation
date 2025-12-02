@@ -54,95 +54,37 @@ CREATE OR REPLACE PACKAGE BODY PKG_PASSENGER AS
         p_error_msg      OUT VARCHAR2
     ) RETURN NUMBER AS
         v_passenger_id CRS_PASSENGER.passenger_id%TYPE;
-        v_cnt          NUMBER;
     BEGIN
         p_error_msg := NULL;
 
-        -- 1. Validate mandatory fields
-        IF TRIM(p_first_name) IS NULL THEN
-            p_error_msg := 'First name is required.';
+        -- 1. Validate whitespace-only values (DDL allows '   ' but we shouldn't)
+        IF TRIM(p_first_name) IS NULL OR TRIM(p_last_name) IS NULL OR
+           TRIM(p_address_line1) IS NULL OR TRIM(p_address_city) IS NULL OR
+           TRIM(p_address_state) IS NULL OR TRIM(p_address_zip) IS NULL OR
+           TRIM(p_email) IS NULL OR TRIM(p_phone) IS NULL THEN
+            p_error_msg := 'Required fields cannot be empty or whitespace only.';
             RETURN -1;
         END IF;
 
-        IF TRIM(p_last_name) IS NULL THEN
-            p_error_msg := 'Last name is required.';
-            RETURN -1;
-        END IF;
-
-        IF p_date_of_birth IS NULL THEN
-            p_error_msg := 'Date of birth is required.';
-            RETURN -1;
-        END IF;
-
-        IF TRIM(p_address_line1) IS NULL THEN
-            p_error_msg := 'Address line 1 is required.';
-            RETURN -1;
-        END IF;
-
-        IF TRIM(p_address_city) IS NULL THEN
-            p_error_msg := 'City is required.';
-            RETURN -1;
-        END IF;
-
-        IF TRIM(p_address_state) IS NULL THEN
-            p_error_msg := 'State is required.';
-            RETURN -1;
-        END IF;
-
-        IF TRIM(p_address_zip) IS NULL THEN
-            p_error_msg := 'ZIP code is required.';
-            RETURN -1;
-        END IF;
-
-        IF TRIM(p_email) IS NULL THEN
-            p_error_msg := 'Email is required.';
-            RETURN -1;
-        END IF;
-
-        IF TRIM(p_phone) IS NULL THEN
-            p_error_msg := 'Phone is required.';
-            RETURN -1;
-        END IF;
-
-        -- 2. Validate email format
+        -- 2. Validate email format (DDL has no format check)
         IF NOT is_valid_email(TRIM(p_email)) THEN
             p_error_msg := 'Invalid email format.';
             RETURN -1;
         END IF;
 
-        -- 3. Validate phone format
+        -- 3. Validate phone format (DDL has no format check)
         IF NOT is_valid_phone(TRIM(p_phone)) THEN
             p_error_msg := 'Invalid phone format. Must have at least 10 digits.';
             RETURN -1;
         END IF;
 
-        -- 4. Validate date of birth
+        -- 4. Validate date of birth (DDL has no future/age check)
         IF NOT is_valid_dob(p_date_of_birth) THEN
             p_error_msg := 'Invalid date of birth.';
             RETURN -1;
         END IF;
 
-        -- 5. Check email uniqueness (case-insensitive)
-        SELECT COUNT(*) INTO v_cnt
-        FROM CRS_PASSENGER
-        WHERE UPPER(email) = UPPER(TRIM(p_email));
-
-        IF v_cnt > 0 THEN
-            p_error_msg := 'Email already registered.';
-            RETURN -1;
-        END IF;
-
-        -- 6. Check phone uniqueness
-        SELECT COUNT(*) INTO v_cnt
-        FROM CRS_PASSENGER
-        WHERE phone = TRIM(p_phone);
-
-        IF v_cnt > 0 THEN
-            p_error_msg := 'Phone number already registered.';
-            RETURN -1;
-        END IF;
-
-        -- 7. Insert passenger
+        -- 5. Insert passenger (DDL handles NOT NULL and UNIQUE constraints)
         INSERT INTO CRS_PASSENGER (
             first_name, middle_name, last_name, date_of_birth,
             address_line1, address_city, address_state, address_zip,
@@ -173,7 +115,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PASSENGER AS
 
         WHEN OTHERS THEN
             ROLLBACK;
-            p_error_msg := 'Error registering passenger: ' || SQLERRM;
+            p_error_msg := 'Error: ' || SQLERRM;
             RETURN -1;
     END register_passenger;
 
@@ -212,34 +154,11 @@ CREATE OR REPLACE PACKAGE BODY PKG_PASSENGER AS
             RETURN FALSE;
         END IF;
 
-        -- 3. Validate mandatory fields
-        IF TRIM(p_address_line1) IS NULL THEN
-            p_error_msg := 'Address line 1 is required.';
-            RETURN FALSE;
-        END IF;
-
-        IF TRIM(p_address_city) IS NULL THEN
-            p_error_msg := 'City is required.';
-            RETURN FALSE;
-        END IF;
-
-        IF TRIM(p_address_state) IS NULL THEN
-            p_error_msg := 'State is required.';
-            RETURN FALSE;
-        END IF;
-
-        IF TRIM(p_address_zip) IS NULL THEN
-            p_error_msg := 'ZIP code is required.';
-            RETURN FALSE;
-        END IF;
-
-        IF TRIM(p_email) IS NULL THEN
-            p_error_msg := 'Email is required.';
-            RETURN FALSE;
-        END IF;
-
-        IF TRIM(p_phone) IS NULL THEN
-            p_error_msg := 'Phone is required.';
+        -- 3. Validate whitespace-only values
+        IF TRIM(p_address_line1) IS NULL OR TRIM(p_address_city) IS NULL OR
+           TRIM(p_address_state) IS NULL OR TRIM(p_address_zip) IS NULL OR
+           TRIM(p_email) IS NULL OR TRIM(p_phone) IS NULL THEN
+            p_error_msg := 'Required fields cannot be empty or whitespace only.';
             RETURN FALSE;
         END IF;
 
@@ -255,29 +174,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PASSENGER AS
             RETURN FALSE;
         END IF;
 
-        -- 6. Check email not used by another passenger
-        SELECT COUNT(*) INTO v_cnt
-        FROM CRS_PASSENGER
-        WHERE UPPER(email) = UPPER(TRIM(p_email))
-          AND passenger_id <> p_passenger_id;
-
-        IF v_cnt > 0 THEN
-            p_error_msg := 'Email already belongs to another passenger.';
-            RETURN FALSE;
-        END IF;
-
-        -- 7. Check phone not used by another passenger
-        SELECT COUNT(*) INTO v_cnt
-        FROM CRS_PASSENGER
-        WHERE phone = TRIM(p_phone)
-          AND passenger_id <> p_passenger_id;
-
-        IF v_cnt > 0 THEN
-            p_error_msg := 'Phone already belongs to another passenger.';
-            RETURN FALSE;
-        END IF;
-
-        -- 8. Perform update
+        -- 6. Perform update (DDL handles UNIQUE constraints)
         UPDATE CRS_PASSENGER
         SET address_line1 = TRIM(p_address_line1),
             address_city  = TRIM(p_address_city),
@@ -305,7 +202,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PASSENGER AS
 
         WHEN OTHERS THEN
             ROLLBACK;
-            p_error_msg := 'Error updating passenger: ' || SQLERRM;
+            p_error_msg := 'Error: ' || SQLERRM;
             RETURN FALSE;
     END update_passenger;
 
