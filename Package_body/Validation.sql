@@ -65,6 +65,20 @@ BEGIN
         RETURN 'Train does not operate on this day.';
     END IF;
 
+    --------------------------------------------------------------------
+    -- 7: Check for duplicate booking
+    --------------------------------------------------------------------
+    SELECT COUNT(*) INTO v_duplicate_count
+    FROM CRS_RESERVATION
+    WHERE passenger_id = p_passenger_id
+      AND train_id = p_train_id
+      AND travel_date = p_travel_date
+      AND seat_status IN ('CONFIRMED', 'WAITLISTED');
+    
+    IF v_duplicate_count > 0 THEN
+        RETURN 'Passenger already has a booking for this train and date.';
+    END IF;
+
     RETURN 'OK';
 
 EXCEPTION
@@ -79,13 +93,13 @@ END validate_booking_request;
 FUNCTION validate_cancellation(
     p_booking_id IN NUMBER
 ) RETURN VARCHAR2 AS
-    v_booking_count NUMBER;
     v_seat_status   VARCHAR2(20);
+    v_travel_date   DATE;
 BEGIN
     --------------------------------------------------------------------
     -- 1. Check if booking exists
     --------------------------------------------------------------------
-    SELECT seat_status INTO v_seat_status
+    SELECT seat_status, travel_date INTO v_seat_status, v_travel_date
     FROM CRS_RESERVATION
     WHERE booking_id = p_booking_id;
 
@@ -94,6 +108,13 @@ BEGIN
     --------------------------------------------------------------------
     IF v_seat_status = 'CANCELLED' THEN
         RETURN 'Booking already cancelled.';
+    END IF;
+
+    --------------------------------------------------------------------
+    -- 3: Check cancellation deadline
+    --------------------------------------------------------------------
+    IF TRUNC(v_travel_date) = TRUNC(SYSDATE) THEN
+        RETURN 'Cannot cancel on the day of travel.';
     END IF;
 
     RETURN 'OK';
