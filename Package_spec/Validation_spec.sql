@@ -99,5 +99,14 @@ FUNCTION get_next_waitlist_position(
     p_seat_class IN VARCHAR2
 ) RETURN NUMBER;
 
+/**
+    * Check if train operates on specific date
+    * @return TRUE if operates and is in service, FALSE otherwise
+    */
+FUNCTION is_train_operating(
+    p_train_id IN NUMBER,
+    p_travel_date IN DATE
+) RETURN BOOLEAN;
+
 END PKG_VALIDATION;
 /

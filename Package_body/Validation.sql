@@ -61,18 +61,7 @@ BEGIN
     --------------------------------------------------------------------
     -- 6. Check train runs on the travel day
     --------------------------------------------------------------------
-    v_day_of_week := TO_CHAR(p_travel_date, 'DAY');
-    v_day_of_week := RTRIM(v_day_of_week);
-
-    SELECT COUNT(*)
-    INTO v_sched_count
-    FROM CRS_DAY_SCHEDULE ds
-    JOIN CRS_TRAIN_SCHEDULE ts ON ts.sch_id = ds.sch_id
-    WHERE UPPER(ds.day_of_week) = UPPER(v_day_of_week)
-      AND ts.train_id = p_train_id
-      AND ts.is_in_service = 'Y';
-
-    IF v_sched_count = 0 THEN
+    IF NOT is_train_operating(p_train_id, p_travel_date) THEN
         RETURN 'Train does not operate on this day.';
     END IF;
 
@@ -240,4 +229,32 @@ EXCEPTION
 END get_next_waitlist_position;
 
 END PKG_VALIDATION;
+
+/******************************************************************
+ *  CHECK TRAIN OPERATING ON DATE
+ ******************************************************************/
+FUNCTION is_train_operating(
+    p_train_id IN NUMBER,
+    p_travel_date IN DATE
+) RETURN BOOLEAN AS
+    v_count NUMBER;
+    v_day VARCHAR2(10);
+BEGIN
+    v_day := TRIM(TO_CHAR(p_travel_date, 'DAY'));
+
+    SELECT COUNT(*) INTO v_count
+    FROM CRS_TRAIN_SCHEDULE ts
+    JOIN CRS_DAY_SCHEDULE ds ON ts.sch_id = ds.sch_id
+    WHERE ts.train_id = p_train_id
+      AND ds.day_of_week = v_day
+      AND ts.is_in_service = 'Y';
+
+    RETURN (v_count > 0);
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN FALSE;
+END is_train_operating;
+
+END PKG_TRAIN;
 /
