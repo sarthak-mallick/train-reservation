@@ -266,7 +266,7 @@ BEGIN
     FROM CRS_TRAIN_SCHEDULE ts
     JOIN CRS_DAY_SCHEDULE ds ON ts.sch_id = ds.sch_id
     WHERE ts.train_id = p_train_id
-      AND ds.day_of_week = v_day
+      AND UPPER(ds.day_of_week) = UPPER(v_day)
       AND ts.is_in_service = 'Y';
 
     RETURN (v_count > 0);
