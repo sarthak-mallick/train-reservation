@@ -68,9 +68,9 @@ END add_train;
 
 
 /******************************************************************
- *  UPDATE TRAIN (FARES ONLY)
+ *  UPDATE FARE
  ******************************************************************/
-FUNCTION update_train(
+FUNCTION update_fare(
     p_train_id IN NUMBER,
     p_fc_seat_fare IN NUMBER,
     p_econ_seat_fare IN NUMBER,
@@ -151,64 +151,6 @@ EXCEPTION
         p_success := FALSE;
         p_message := SQLERRM;
 END cancel_train_on_date;
-
-
-/******************************************************************
- *  DEACTIVATE TRAIN (SOFT DELETE)
- ******************************************************************/
-PROCEDURE deactivate_train(
-    p_train_id IN NUMBER,
-    p_success OUT BOOLEAN,
-    p_error_msg OUT VARCHAR2
-) AS
-    v_exists NUMBER;
-BEGIN
-    p_success := FALSE;
-
-    SELECT COUNT(*) INTO v_exists
-    FROM CRS_TRAIN_INFO
-    WHERE train_id = p_train_id;
-
-    IF v_exists = 0 THEN
-        p_error_msg := 'Train does not exist.';
-        RETURN;
-    END IF;
-
-    UPDATE CRS_TRAIN_SCHEDULE
-    SET is_in_service = 'N'
-    WHERE train_id = p_train_id;
-
-    COMMIT;
-    p_success := TRUE;
-
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        p_error_msg := SQLERRM;
-        p_success := FALSE;
-END deactivate_train;
-
-
-/******************************************************************
- *  SEARCH TRAIN BY TRAIN NUMBER
- ******************************************************************/
-FUNCTION search_train_by_number(
-    p_train_number IN VARCHAR2
-) RETURN NUMBER AS
-    v_train_id NUMBER;
-BEGIN
-    SELECT train_id INTO v_train_id
-    FROM CRS_TRAIN_INFO
-    WHERE train_number = p_train_number;
-
-    RETURN v_train_id;
-
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RETURN NULL;
-    WHEN OTHERS THEN
-        RETURN NULL;
-END search_train_by_number;
 
 
 /******************************************************************
@@ -297,33 +239,4 @@ EXCEPTION
         p_error_msg := SQLERRM;
         p_success := FALSE;
 END remove_train_from_schedule;
-
-
-/******************************************************************
- *  CHECK TRAIN OPERATING ON DATE
- ******************************************************************/
-FUNCTION is_train_operating(
-    p_train_id IN NUMBER,
-    p_travel_date IN DATE
-) RETURN BOOLEAN AS
-    v_count NUMBER;
-    v_day VARCHAR2(10);
-BEGIN
-    v_day := TRIM(TO_CHAR(p_travel_date, 'DAY'));
-
-    SELECT COUNT(*) INTO v_count
-    FROM CRS_TRAIN_SCHEDULE ts
-    JOIN CRS_DAY_SCHEDULE ds ON ts.sch_id = ds.sch_id
-    WHERE ts.train_id = p_train_id
-      AND ds.day_of_week = v_day
-      AND ts.is_in_service = 'Y';
-
-    RETURN (v_count > 0);
-
-EXCEPTION
-    WHEN OTHERS THEN
-        RETURN FALSE;
-END is_train_operating;
-
-END PKG_TRAIN;
 /
