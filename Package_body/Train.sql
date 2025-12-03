@@ -133,6 +133,12 @@ BEGIN
         RETURN;
     END IF;
 
+    -- Validate train operates on this date
+    IF NOT PKG_VALIDATION.is_train_operating(p_train_id, p_travel_date) THEN
+        p_message := 'Train does not operate on this date.';
+        RETURN;
+    END IF;
+
     -- Cancel bookings
     UPDATE CRS_RESERVATION
     SET seat_status = 'CANCELLED'
