@@ -225,24 +225,51 @@ PROCEDURE remove_train_from_schedule(
     p_success OUT BOOLEAN,
     p_error_msg OUT VARCHAR2
 ) AS
+    v_exists NUMBER;
+    v_day_of_week VARCHAR2(10);
+    v_bookings_cancelled NUMBER := 0;
 BEGIN
-    DELETE FROM CRS_TRAIN_SCHEDULE
-    WHERE train_id = p_train_id
-      AND sch_id = p_sch_id;
-
-    IF SQL%ROWCOUNT = 0 THEN
-        p_error_msg := 'Train not found in schedule.';
-        p_success := FALSE;
+    p_success := FALSE;
+    
+    -- Check if schedule entry exists
+    SELECT COUNT(*) INTO v_exists
+    FROM CRS_TRAIN_SCHEDULE
+    WHERE train_id = p_train_id AND sch_id = p_sch_id;
+    
+    IF v_exists = 0 THEN
+        p_error_msg := 'Train is not scheduled for this day.';
         RETURN;
     END IF;
-
+    
+    -- Get day of week
+    SELECT day_of_week INTO v_day_of_week
+    FROM CRS_DAY_SCHEDULE
+    WHERE sch_id = p_sch_id;
+    
+    -- Cancel all future bookings for this day of week
+    UPDATE CRS_RESERVATION
+    SET seat_status = 'CANCELLED',
+        waitlist_position = NULL
+    WHERE train_id = p_train_id
+      AND RTRIM(TO_CHAR(travel_date, 'DAY')) = UPPER(v_day_of_week)
+      AND travel_date >= TRUNC(SYSDATE)
+      AND seat_status IN ('CONFIRMED', 'WAITLISTED');
+    
+    v_bookings_cancelled := SQL%ROWCOUNT;
+    
+    -- Remove from schedule
+    DELETE FROM CRS_TRAIN_SCHEDULE
+    WHERE train_id = p_train_id AND sch_id = p_sch_id;
+    
     COMMIT;
     p_success := TRUE;
-
+    p_error_msg := 'Train removed from ' || v_day_of_week || ' schedule. ' || 
+                  v_bookings_cancelled || ' future bookings cancelled.';
+    
 EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
-        p_error_msg := SQLERRM;
         p_success := FALSE;
+        p_error_msg := 'Error: ' || SQLERRM;
 END remove_train_from_schedule;
 /

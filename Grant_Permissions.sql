@@ -19,10 +19,6 @@ GRANT SELECT ON CRS_TRAIN_INFO TO crs_agent_role;
 GRANT SELECT ON CRS_DAY_SCHEDULE TO crs_agent_role;
 GRANT SELECT ON CRS_TRAIN_SCHEDULE TO crs_agent_role;
 
--- Agents can manage passengers and reservations
-GRANT SELECT, INSERT, UPDATE ON CRS_PASSENGER TO crs_agent_role;
-GRANT SELECT, INSERT, UPDATE ON CRS_RESERVATION TO crs_agent_role;
-
 -- Grant Privileges to CRS_REPORT_ROLE
 
 -- Reports users have read-only access to all tables
@@ -33,10 +29,6 @@ GRANT SELECT ON CRS_PASSENGER TO crs_report_role;
 GRANT SELECT ON CRS_RESERVATION TO crs_report_role;
 
 -- Grant Privileges to CRS_OPERATIONS_ROLE
-
--- Operations can manage trains and schedules
-GRANT SELECT, INSERT, UPDATE ON CRS_TRAIN_INFO TO crs_operations_role;
-GRANT SELECT, INSERT, UPDATE ON CRS_TRAIN_SCHEDULE TO crs_operations_role;
 
 -- Operations can view day schedules and reservations (read-only)
 GRANT SELECT ON CRS_DAY_SCHEDULE TO crs_operations_role;
