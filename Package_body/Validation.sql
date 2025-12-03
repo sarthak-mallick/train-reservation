@@ -14,6 +14,7 @@ FUNCTION validate_booking_request(
     v_passenger_count   NUMBER;
     v_day_of_week       VARCHAR2(10);
     v_sched_count       NUMBER;
+    v_duplicate_count   NUMBER;
 BEGIN
     --------------------------------------------------------------------
     -- 1. Check if train exists
@@ -249,8 +250,6 @@ EXCEPTION
         RETURN 1;
 END get_next_waitlist_position;
 
-END PKG_VALIDATION;
-
 /******************************************************************
  *  CHECK TRAIN OPERATING ON DATE
  ******************************************************************/
@@ -277,5 +276,5 @@ EXCEPTION
         RETURN FALSE;
 END is_train_operating;
 
-END PKG_TRAIN;
+END PKG_VALIDATION;
 /

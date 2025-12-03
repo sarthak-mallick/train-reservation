@@ -272,4 +272,6 @@ EXCEPTION
         p_success := FALSE;
         p_error_msg := 'Error: ' || SQLERRM;
 END remove_train_from_schedule;
+
+END PKG_TRAIN;
 /
