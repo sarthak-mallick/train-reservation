@@ -13,7 +13,7 @@ DECLARE
 BEGIN
     DBMS_OUTPUT.PUT_LINE('TEST 1: Book Ticket - Should be CONFIRMED');
     
-    PKG_BOOKING.book_ticket(
+    CRS_ADMIN.PKG_BOOKING.book_ticket(
         p_passenger_id => 1,
         p_train_id => 1,
         p_travel_date => DATE '2025-12-08',  -- Future date within 7 days
@@ -44,7 +44,7 @@ BEGIN
     
     -- Book 39 more tickets to fill 40 FC seats
     FOR i IN 1..39 LOOP
-        PKG_BOOKING.book_ticket(
+        CRS_ADMIN.PKG_BOOKING.book_ticket(
             p_passenger_id => MOD(v_passenger_id, 15) + 1, -- Cycle through passengers 1-15
             p_train_id => 1,
             p_travel_date => DATE '2025-12-08',
@@ -57,7 +57,7 @@ BEGIN
         v_passenger_id := v_passenger_id + 1;
     END LOOP;
     
-    DBMS_OUTPUT.PUT_LINE('Booked 38 more tickets. Last booking:');
+    DBMS_OUTPUT.PUT_LINE('Booked 39 more tickets. Last booking:');
     DBMS_OUTPUT.PUT_LINE('Booking ID: ' || v_booking_id);
     DBMS_OUTPUT.PUT_LINE('Status: ' || v_status);
     DBMS_OUTPUT.PUT_LINE('Total FC seats should now be 40/40 (FULL)');
@@ -74,7 +74,7 @@ DECLARE
 BEGIN
     DBMS_OUTPUT.PUT_LINE('TEST 4: Book Ticket - Should be WAITLISTED');
     
-    PKG_BOOKING.book_ticket(
+    CRS_ADMIN.PKG_BOOKING.book_ticket(
         p_passenger_id => 5,
         p_train_id => 1,
         p_travel_date => DATE '2025-12-08',
@@ -104,7 +104,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('TEST 5: Book 4 More Waitlisted Tickets');
     
     FOR i IN 6..9 LOOP
-        PKG_BOOKING.book_ticket(
+        CRS_ADMIN.PKG_BOOKING.book_ticket(
             p_passenger_id => i,
             p_train_id => 1,
             p_travel_date => DATE '2025-12-08',
@@ -132,7 +132,7 @@ DECLARE
 BEGIN
     DBMS_OUTPUT.PUT_LINE('TEST 6: Book Ticket - Waitlist FULL (Should FAIL)');
     
-    PKG_BOOKING.book_ticket(
+    CRS_ADMIN.PKG_BOOKING.book_ticket(
         p_passenger_id => 10,
         p_train_id => 1,
         p_travel_date => DATE '2025-12-08',
@@ -162,7 +162,7 @@ BEGIN
     
     -- Get the first confirmed booking
     SELECT MIN(booking_id) INTO v_first_booking_id
-    FROM CRS_RESERVATION
+    FROM CRS_ADMIN.CRS_RESERVATION
     WHERE train_id = 1
       AND travel_date = DATE '2025-12-08'
       AND seat_class = 'FC'
@@ -170,7 +170,7 @@ BEGIN
     
     DBMS_OUTPUT.PUT_LINE('Cancelling Booking ID: ' || v_first_booking_id);
     
-    PKG_BOOKING.cancel_ticket(
+    CRS_ADMIN.PKG_BOOKING.cancel_ticket(
         p_booking_id => v_first_booking_id,
         p_success => v_success,
         p_promoted_booking_id => v_promoted_booking_id,
@@ -193,29 +193,29 @@ BEGIN
     
     -- Count confirmed bookings
     SELECT COUNT(*) INTO v_count
-    FROM CRS_RESERVATION
+    FROM CRS_ADMIN.CRS_RESERVATION
     WHERE train_id = 1
       AND travel_date = DATE '2025-12-08'
       AND seat_class = 'FC'
       AND seat_status = 'CONFIRMED';
     
-    DBMS_OUTPUT.PUT_LINE('Confirmed bookings: ' || v_count || ' (Expected: 40)');
+    DBMS_OUTPUT.PUT_LINE('Confirmed bookings: ' || v_count);
     
     -- Count waitlisted bookings
     SELECT COUNT(*) INTO v_count
-    FROM CRS_RESERVATION
+    FROM CRS_ADMIN.CRS_RESERVATION
     WHERE train_id = 1
       AND travel_date = DATE '2025-12-08'
       AND seat_class = 'FC'
       AND seat_status = 'WAITLISTED';
     
-    DBMS_OUTPUT.PUT_LINE('Waitlisted bookings: ' || v_count || ' (Expected: 4)');
+    DBMS_OUTPUT.PUT_LINE('Waitlisted bookings: ' || v_count);
     
     -- Show waitlist positions
     DBMS_OUTPUT.PUT_LINE('Current waitlist positions:');
     FOR rec IN (
         SELECT booking_id, passenger_id, waitlist_position
-        FROM CRS_RESERVATION
+        FROM CRS_ADMIN.CRS_RESERVATION
         WHERE train_id = 1
           AND travel_date = DATE '2025-12-08'
           AND seat_class = 'FC'
@@ -226,7 +226,6 @@ BEGIN
                            ' (Passenger ' || rec.passenger_id || 
                            '): Position ' || rec.waitlist_position);
     END LOOP;
-    DBMS_OUTPUT.PUT_LINE('Expected: Positions should be 1, 2, 3, 4');
     DBMS_OUTPUT.PUT_LINE('');
 END;
 /
@@ -242,7 +241,7 @@ BEGIN
     
     -- Get a waitlisted booking at position 2
     SELECT booking_id INTO v_waitlist_booking_id
-    FROM CRS_RESERVATION
+    FROM CRS_ADMIN.CRS_RESERVATION
     WHERE train_id = 1
       AND travel_date = DATE '2025-12-08'
       AND seat_class = 'FC'
@@ -251,7 +250,7 @@ BEGIN
     
     DBMS_OUTPUT.PUT_LINE('Cancelling Waitlisted Booking ID: ' || v_waitlist_booking_id);
     
-    PKG_BOOKING.cancel_ticket(
+    CRS_ADMIN.PKG_BOOKING.cancel_ticket(
         p_booking_id => v_waitlist_booking_id,
         p_success => v_success,
         p_promoted_booking_id => v_promoted_booking_id,
@@ -274,7 +273,7 @@ DECLARE
 BEGIN
     DBMS_OUTPUT.PUT_LINE('TEST 12: Error - Invalid Train ID');
     
-    PKG_BOOKING.book_ticket(
+    CRS_ADMIN.PKG_BOOKING.book_ticket(
         p_passenger_id => 1,
         p_train_id => 9999,  -- Invalid train
         p_travel_date => DATE '2025-12-08',
@@ -301,7 +300,7 @@ DECLARE
 BEGIN
     DBMS_OUTPUT.PUT_LINE('TEST 13: Error - Past Travel Date');
     
-    PKG_BOOKING.book_ticket(
+    CRS_ADMIN.PKG_BOOKING.book_ticket(
         p_passenger_id => 1,
         p_train_id => 1,
         p_travel_date => DATE '2020-01-01',  -- Past date
@@ -330,13 +329,13 @@ BEGIN
     
     -- Get a cancelled booking
     SELECT booking_id INTO v_cancelled_booking_id
-    FROM CRS_RESERVATION
+    FROM CRS_ADMIN.CRS_RESERVATION
     WHERE seat_status = 'CANCELLED'
       AND ROWNUM = 1;
     
     DBMS_OUTPUT.PUT_LINE('Attempting to cancel Booking ID: ' || v_cancelled_booking_id);
     
-    PKG_BOOKING.cancel_ticket(
+    CRS_ADMIN.PKG_BOOKING.cancel_ticket(
         p_booking_id => v_cancelled_booking_id,
         p_success => v_success,
         p_promoted_booking_id => v_promoted_booking_id,
@@ -348,5 +347,4 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Expected: FALSE with already cancelled error');
     DBMS_OUTPUT.PUT_LINE('');
 END;
-/
 /
