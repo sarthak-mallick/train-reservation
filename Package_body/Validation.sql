@@ -54,7 +54,7 @@ BEGIN
     --------------------------------------------------------------------
     -- 5. Travel date within 7-day booking window
     --------------------------------------------------------------------
-    IF TRUNC(p_travel_date) > TRUNC(p_booking_date) + 7 THEN
+    IF TRUNC(p_travel_date) > TRUNC(p_booking_date) + C_ADVANCE_BOOKING_DAYS THEN
         RETURN 'Travel date exceeds 7-day booking window.';
     END IF;
 
@@ -127,7 +127,6 @@ FUNCTION check_seat_availability(
 ) RETURN VARCHAR2 AS
     v_available_seats NUMBER;
     v_waitlist NUMBER;
-    C_MAX_WAITLIST CONSTANT NUMBER := 10;
 BEGIN
     v_available_seats := get_available_seats(p_train_id, p_travel_date, p_seat_class);
 
@@ -137,7 +136,7 @@ BEGIN
 
     v_waitlist := get_waitlist_count(p_train_id, p_travel_date, p_seat_class);
 
-    IF v_waitlist < C_MAX_WAITLIST THEN
+    IF v_waitlist < C_MAX_WAITLIST_PER_CLASS THEN
         RETURN 'WAITLIST_AVAILABLE';
     ELSE
         RETURN 'FULL';

@@ -26,7 +26,7 @@ GRANT CREATE VIEW TO crs_admin;
 GRANT CREATE PROCEDURE TO crs_admin;
 GRANT CREATE TRIGGER TO crs_admin;
 GRANT CREATE SYNONYM TO crs_admin;
-
+GRANT CREATE PUBLIC SYNONYM TO crs_admin;
 
 -- Create Data Management Schema
 

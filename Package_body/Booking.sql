@@ -151,81 +151,108 @@ CREATE OR REPLACE PACKAGE BODY PKG_BOOKING AS
         v_travel_date DATE;
         v_seat_class VARCHAR2(10);
         v_old_waitlist_position NUMBER;
+        v_was_confirmed NUMBER;
+        v_first_waitlist_id NUMBER;
+        v_has_waitlist NUMBER;
+        v_rows_updated NUMBER := 0;
     BEGIN
-        -- Initialize OUT parameters
         p_success := FALSE;
         p_promoted_booking_id := NULL;
         p_message := NULL;
         
         -- Validate cancellation
         v_validation_result := PKG_VALIDATION.validate_cancellation(p_booking_id);
-        
         IF v_validation_result != 'OK' THEN
             RAISE_APPLICATION_ERROR(C_ERR_VALIDATION_FAILED, v_validation_result);
         END IF;
         
         -- Get booking details
-        BEGIN
-            SELECT train_id, travel_date, seat_class, waitlist_position
-            INTO v_train_id, v_travel_date, v_seat_class, v_old_waitlist_position
+        SELECT 
+            train_id, 
+            travel_date, 
+            seat_class, 
+            waitlist_position,
+            CASE WHEN seat_status = 'CONFIRMED' THEN 1 ELSE 0 END
+        INTO 
+            v_train_id, 
+            v_travel_date, 
+            v_seat_class, 
+            v_old_waitlist_position,
+            v_was_confirmed
+        FROM CRS_RESERVATION
+        WHERE booking_id = p_booking_id;
+        
+        -- Check for waitlist if was confirmed
+        IF v_was_confirmed = 1 THEN
+            SELECT COUNT(*), MIN(booking_id)
+            INTO v_has_waitlist, v_first_waitlist_id
             FROM CRS_RESERVATION
-            WHERE booking_id = p_booking_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                RAISE_APPLICATION_ERROR(C_ERR_BOOKING_NOT_FOUND, 'Booking ID ' || p_booking_id || ' not found.');
-        END;
+            WHERE train_id = v_train_id
+            AND travel_date = v_travel_date
+            AND seat_class = v_seat_class
+            AND seat_status = 'WAITLISTED'
+            AND waitlist_position = 1;
+        ELSE
+            v_has_waitlist := 0;
+        END IF;
         
         -- Cancel the booking
         UPDATE CRS_RESERVATION
-        SET seat_status = PKG_VALIDATION.C_STATUS_CANCELLED,
+        SET seat_status = 'CANCELLED',
             waitlist_position = NULL
         WHERE booking_id = p_booking_id;
         
-        -- Handle waitlist reordering or promotion
+        -- If was waitlisted, reorder remaining
         IF v_old_waitlist_position IS NOT NULL THEN
-            -- Was waitlisted - just reorder
-            UPDATE CRS_RESERVATION
-            SET waitlist_position = waitlist_position - 1
-            WHERE train_id = v_train_id
-              AND travel_date = v_travel_date
-              AND seat_class = v_seat_class
-              AND seat_status = PKG_VALIDATION.C_STATUS_WAITLISTED
-              AND waitlist_position > v_old_waitlist_position;
-            
-            p_message := 'Waitlisted booking cancelled. Remaining waitlist reordered.';
-        ELSE
-            -- Was confirmed - promote from waitlist
-            BEGIN
-                SELECT booking_id
-                INTO p_promoted_booking_id
+            FOR rec IN (
+                SELECT booking_id, waitlist_position
                 FROM CRS_RESERVATION
                 WHERE train_id = v_train_id
-                  AND travel_date = v_travel_date
-                  AND seat_class = v_seat_class
-                  AND seat_status = PKG_VALIDATION.C_STATUS_WAITLISTED
+                AND travel_date = v_travel_date
+                AND seat_class = v_seat_class
+                AND seat_status = 'WAITLISTED'
+                AND waitlist_position > v_old_waitlist_position
                 ORDER BY waitlist_position
-                FETCH FIRST 1 ROW ONLY;
-                
-                -- Promote
+            ) LOOP
                 UPDATE CRS_RESERVATION
-                SET seat_status = PKG_VALIDATION.C_STATUS_CONFIRMED,
-                    waitlist_position = NULL
-                WHERE booking_id = p_promoted_booking_id;
+                SET waitlist_position = rec.waitlist_position - 1
+                WHERE booking_id = rec.booking_id;
                 
-                -- Reorder remaining
-                UPDATE CRS_RESERVATION
-                SET waitlist_position = waitlist_position - 1
+                v_rows_updated := v_rows_updated + 1;
+            END LOOP;
+            
+            p_message := 'Waitlisted booking cancelled. ' || v_rows_updated || ' waitlist bookings reordered.';
+            
+        -- If was confirmed and has waitlist, promote
+        ELSIF v_has_waitlist > 0 THEN
+            p_promoted_booking_id := v_first_waitlist_id;
+            
+            -- Promote to confirmed
+            UPDATE CRS_RESERVATION
+            SET seat_status = 'CONFIRMED',
+                waitlist_position = NULL
+            WHERE booking_id = v_first_waitlist_id;
+            
+            -- Reorder remaining waitlist row-by-row
+            FOR rec IN (
+                SELECT booking_id, waitlist_position
+                FROM CRS_RESERVATION
                 WHERE train_id = v_train_id
-                  AND travel_date = v_travel_date
-                  AND seat_class = v_seat_class
-                  AND seat_status = PKG_VALIDATION.C_STATUS_WAITLISTED;
+                AND travel_date = v_travel_date
+                AND seat_class = v_seat_class
+                AND seat_status = 'WAITLISTED'
+                ORDER BY waitlist_position
+            ) LOOP
+                UPDATE CRS_RESERVATION
+                SET waitlist_position = rec.waitlist_position - 1
+                WHERE booking_id = rec.booking_id;
                 
-                p_message := 'Booking cancelled. Booking ID ' || p_promoted_booking_id || ' promoted from waitlist.';
-                
-            EXCEPTION
-                WHEN NO_DATA_FOUND THEN
-                    p_message := 'Booking cancelled successfully. No waitlisted passengers to promote.';
-            END;
+                v_rows_updated := v_rows_updated + 1;
+            END LOOP;
+            
+            p_message := 'Booking cancelled. Booking ' || p_promoted_booking_id || ' promoted. ' || v_rows_updated || ' waitlist bookings reordered.';
+        ELSE
+            p_message := 'Booking cancelled. No waitlisted passengers to promote.';
         END IF;
         
         COMMIT;
@@ -236,7 +263,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_BOOKING AS
             ROLLBACK;
             p_success := FALSE;
             
-            CASE WHEN SQLCODE IN
+            CASE WHEN SQLCODE IN 
                 (C_ERR_VALIDATION_FAILED, C_ERR_BOOKING_NOT_FOUND) THEN
                     p_message := SQLERRM;
                 ELSE
