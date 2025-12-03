@@ -1,7 +1,7 @@
 SET SERVEROUTPUT ON;
 
 -- Test Script: PKG_BOOKING - Comprehensive Test Cases
--- Run as: CRS_ADMIN (or user with EXECUTE on PKG_BOOKING)
+-- Run as: CRS_AGENT
 -- Purpose: Test all booking scenarios
 
 -- TEST 1: Book a ticket - CONFIRMED status
