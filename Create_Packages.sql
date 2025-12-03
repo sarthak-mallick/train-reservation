@@ -32,4 +32,3 @@ GRANT EXECUTE ON PKG_BOOKING TO crs_agent_role;
 GRANT EXECUTE ON PKG_VALIDATION TO crs_operations_role;
 GRANT EXECUTE ON PKG_TRAIN TO crs_operations_role;
 /
-

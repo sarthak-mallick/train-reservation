@@ -32,20 +32,52 @@ BEGIN
 END;
 /
 
--- TEST 3: Fill all seats to test WAITLIST
+-- TEST 2: Test duplicate booking prevention
 DECLARE
     v_booking_id NUMBER;
     v_status VARCHAR2(20);
     v_waitlist_position NUMBER;
     v_message VARCHAR2(500);
-    v_passenger_id NUMBER := 3;
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('TEST 3: Fill Seats (book 38 more tickets)');
+    DBMS_OUTPUT.PUT_LINE('==============================================');
+    DBMS_OUTPUT.PUT_LINE('TEST 2: Duplicate Booking Prevention');
+    DBMS_OUTPUT.PUT_LINE('==============================================');
     
-    -- Book 39 more tickets to fill 40 FC seats
-    FOR i IN 1..39 LOOP
+    CRS_ADMIN.PKG_BOOKING.book_ticket(
+        p_passenger_id => 1,  -- Same passenger as Test 1
+        p_train_id => 1,      -- Same train
+        p_travel_date => DATE '2025-12-08',  -- Same date
+        p_seat_class => 'ECON',  -- Different class (should still fail)
+        p_booking_id => v_booking_id,
+        p_status => v_status,
+        p_waitlist_position => v_waitlist_position,
+        p_message => v_message
+    );
+    
+    DBMS_OUTPUT.PUT_LINE('Status: ' || v_status);
+    DBMS_OUTPUT.PUT_LINE('Message: ' || v_message);
+    DBMS_OUTPUT.PUT_LINE('Expected: FAILED - duplicate booking error');
+    DBMS_OUTPUT.PUT_LINE('==============================================');
+    DBMS_OUTPUT.PUT_LINE('');
+END;
+/
+
+
+-- TEST 3: Fill all seats (book 39 more tickets using passengers 2-40)
+DECLARE
+    v_booking_id NUMBER;
+    v_status VARCHAR2(20);
+    v_waitlist_position NUMBER;
+    v_message VARCHAR2(500);
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('==============================================');
+    DBMS_OUTPUT.PUT_LINE('TEST 3: Fill Seats (book 39 more tickets)');
+    DBMS_OUTPUT.PUT_LINE('==============================================');
+    
+    -- Use passengers 2-40 (39 passengers total)
+    FOR i IN 2..40 LOOP
         CRS_ADMIN.PKG_BOOKING.book_ticket(
-            p_passenger_id => MOD(v_passenger_id, 15) + 1, -- Cycle through passengers 1-15
+            p_passenger_id => i,
             p_train_id => 1,
             p_travel_date => DATE '2025-12-08',
             p_seat_class => 'FC',
@@ -54,13 +86,16 @@ BEGIN
             p_waitlist_position => v_waitlist_position,
             p_message => v_message
         );
-        v_passenger_id := v_passenger_id + 1;
+        
+        IF v_status = 'FAILED' THEN
+            DBMS_OUTPUT.PUT_LINE('  ERROR at passenger ' || i || ': ' || v_message);
+        END IF;
     END LOOP;
     
-    DBMS_OUTPUT.PUT_LINE('Booked 39 more tickets. Last booking:');
-    DBMS_OUTPUT.PUT_LINE('Booking ID: ' || v_booking_id);
-    DBMS_OUTPUT.PUT_LINE('Status: ' || v_status);
+    DBMS_OUTPUT.PUT_LINE('Booked 39 more tickets.');
+    DBMS_OUTPUT.PUT_LINE('Last booking - Passenger ' || 40 || ': Status=' || v_status);
     DBMS_OUTPUT.PUT_LINE('Total FC seats should now be 40/40 (FULL)');
+    DBMS_OUTPUT.PUT_LINE('==============================================');
     DBMS_OUTPUT.PUT_LINE('');
 END;
 /
@@ -75,7 +110,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('TEST 4: Book Ticket - Should be WAITLISTED');
     
     CRS_ADMIN.PKG_BOOKING.book_ticket(
-        p_passenger_id => 5,
+        p_passenger_id => 41,
         p_train_id => 1,
         p_travel_date => DATE '2025-12-08',
         p_seat_class => 'FC',
@@ -103,7 +138,7 @@ DECLARE
 BEGIN
     DBMS_OUTPUT.PUT_LINE('TEST 5: Book 4 More Waitlisted Tickets');
     
-    FOR i IN 6..9 LOOP
+    FOR i IN 42..45 LOOP
         CRS_ADMIN.PKG_BOOKING.book_ticket(
             p_passenger_id => i,
             p_train_id => 1,
@@ -133,7 +168,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('TEST 6: Book Ticket - Waitlist FULL (Should FAIL)');
     
     CRS_ADMIN.PKG_BOOKING.book_ticket(
-        p_passenger_id => 10,
+        p_passenger_id => 46,
         p_train_id => 1,
         p_travel_date => DATE '2025-12-08',
         p_seat_class => 'FC',

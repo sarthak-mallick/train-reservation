@@ -138,6 +138,99 @@ VALUES ('Linda', 'Sue', 'White', DATE '1986-07-23', '357 Sycamore Rd', 'San Dieg
 INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
 VALUES ('Christopher', 'Alan', 'Harris', DATE '1994-11-11', '486 Redwood Ln', 'Portland', 'OR', '97201', 'christopher.harris@email.com', '503-555-0115');
 
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Daniel', 'Ray', 'Thompson', DATE '1989-05-22', '100 Test Ave', 'Boston', 'MA', '02102', 'daniel.thompson@email.com', '617-555-0116');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Nancy', 'Lynn', 'Martinez', DATE '1984-09-30', '101 Test Ave', 'Boston', 'MA', '02102', 'nancy.martinez@email.com', '617-555-0117');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Kevin', 'Paul', 'Lee', DATE '1992-12-14', '102 Test Ave', 'Boston', 'MA', '02102', 'kevin.lee@email.com', '617-555-0118');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Betty', 'Jean', 'Walker', DATE '1981-04-07', '103 Test Ave', 'Boston', 'MA', '02102', 'betty.walker@email.com', '617-555-0119');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Mark', 'Anthony', 'Hall', DATE '1988-08-19', '104 Test Ave', 'Boston', 'MA', '02102', 'mark.hall@email.com', '617-555-0120');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Sandra', 'Marie', 'Allen', DATE '1993-11-25', '105 Test Ave', 'Boston', 'MA', '02102', 'sandra.allen@email.com', '617-555-0121');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Steven', 'Richard', 'Young', DATE '1977-02-10', '106 Test Ave', 'Boston', 'MA', '02102', 'steven.young@email.com', '617-555-0122');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Donna', 'Kay', 'King', DATE '1990-06-16', '107 Test Ave', 'Boston', 'MA', '02102', 'donna.king@email.com', '617-555-0123');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Brian', 'Scott', 'Wright', DATE '1985-10-03', '108 Test Ave', 'Boston', 'MA', '02102', 'brian.wright@email.com', '617-555-0124');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Carol', 'Ann', 'Lopez', DATE '1991-01-28', '109 Test Ave', 'Boston', 'MA', '02102', 'carol.lopez@email.com', '617-555-0125');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('George', 'William', 'Hill', DATE '1983-07-12', '110 Test Ave', 'Boston', 'MA', '02102', 'george.hill@email.com', '617-555-0126');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Sharon', 'Lee', 'Scott', DATE '1994-03-04', '111 Test Ave', 'Boston', 'MA', '02102', 'sharon.scott@email.com', '617-555-0127');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Kenneth', 'Dale', 'Green', DATE '1987-09-21', '112 Test Ave', 'Boston', 'MA', '02102', 'kenneth.green@email.com', '617-555-0128');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Jessica', 'Marie', 'Adams', DATE '1992-05-18', '113 Test Ave', 'Boston', 'MA', '02102', 'jessica.adams@email.com', '617-555-0129');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Ronald', 'Gene', 'Baker', DATE '1980-12-06', '114 Test Ave', 'Boston', 'MA', '02102', 'ronald.baker@email.com', '617-555-0130');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Kimberly', 'Rose', 'Gonzalez', DATE '1995-08-14', '115 Test Ave', 'Boston', 'MA', '02102', 'kimberly.gonzalez@email.com', '617-555-0131');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Anthony', 'Joseph', 'Nelson', DATE '1986-02-27', '116 Test Ave', 'Boston', 'MA', '02102', 'anthony.nelson@email.com', '617-555-0132');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Michelle', 'Denise', 'Carter', DATE '1991-07-09', '117 Test Ave', 'Boston', 'MA', '02102', 'michelle.carter@email.com', '617-555-0133');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Matthew', 'John', 'Mitchell', DATE '1984-11-23', '118 Test Ave', 'Boston', 'MA', '02102', 'matthew.mitchell@email.com', '617-555-0134');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Dorothy', 'Mae', 'Perez', DATE '1993-04-15', '119 Test Ave', 'Boston', 'MA', '02102', 'dorothy.perez@email.com', '617-555-0135');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Andrew', 'Charles', 'Roberts', DATE '1979-08-01', '120 Test Ave', 'Boston', 'MA', '02102', 'andrew.roberts@email.com', '617-555-0136');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Amanda', 'Nicole', 'Turner', DATE '1996-01-17', '121 Test Ave', 'Boston', 'MA', '02102', 'amanda.turner@email.com', '617-555-0137');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Joshua', 'David', 'Phillips', DATE '1988-06-29', '122 Test Ave', 'Boston', 'MA', '02102', 'joshua.phillips@email.com', '617-555-0138');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Angela', 'Dawn', 'Campbell', DATE '1994-10-11', '123 Test Ave', 'Boston', 'MA', '02102', 'angela.campbell@email.com', '617-555-0139');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Timothy', 'Wayne', 'Parker', DATE '1982-03-24', '124 Test Ave', 'Boston', 'MA', '02102', 'timothy.parker@email.com', '617-555-0140');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Rebecca', 'Jane', 'Evans', DATE '1990-09-08', '125 Test Ave', 'Boston', 'MA', '02102', 'rebecca.evans@email.com', '617-555-0141');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Ryan', 'Matthew', 'Edwards', DATE '1987-12-20', '126 Test Ave', 'Boston', 'MA', '02102', 'ryan.edwards@email.com', '617-555-0142');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Melissa', 'Ann', 'Collins', DATE '1995-05-06', '127 Test Ave', 'Boston', 'MA', '02102', 'melissa.collins@email.com', '617-555-0143');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Gary', 'Lee', 'Stewart', DATE '1981-08-18', '128 Test Ave', 'Boston', 'MA', '02102', 'gary.stewart@email.com', '617-555-0144');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Deborah', 'Kay', 'Sanchez', DATE '1993-02-02', '129 Test Ave', 'Boston', 'MA', '02102', 'deborah.sanchez@email.com', '617-555-0145');
+
+INSERT INTO crs_admin.CRS_PASSENGER (first_name, middle_name, last_name, date_of_birth, address_line1, address_city, address_state, address_zip, email, phone)
+VALUES ('Jeffrey', 'Allen', 'Morris', DATE '1986-07-26', '130 Test Ave', 'Boston', 'MA', '02102', 'jeffrey.morris@email.com', '617-555-0146');
+
 COMMIT;
 
 -- Populate CRS_RESERVATION (Sample bookings)
