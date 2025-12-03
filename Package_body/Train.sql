@@ -105,7 +105,7 @@ EXCEPTION
         ROLLBACK;
         p_error_msg := SQLERRM;
         RETURN FALSE;
-END update_train;
+END update_fare;
 
 
 /******************************************************************
