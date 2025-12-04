@@ -1,11 +1,9 @@
--- Views: CRS Report Views (Simplified)
+-- Views: CRS Report Views
 -- Purpose: Create reporting views for analytics
 -- Owner: CRS_ADMIN
 
--- ============================================================
--- VIEW 1: VW_TRAIN_OCCUPANCY (Complex - 4 joins)
+-- VIEW 1: VW_TRAIN_OCCUPANCY
 -- Purpose: Analyze seat utilization and revenue
--- ============================================================
 CREATE OR REPLACE VIEW VW_TRAIN_OCCUPANCY AS
 SELECT 
     t.train_number,
@@ -35,10 +33,8 @@ GROUP BY
     t.total_fc_seats, t.total_econ_seats, t.fc_seat_fare, t.econ_seat_fare;
 /
 
--- ============================================================
--- VIEW 2: VW_WAITLIST_SUMMARY (Simple - 2 joins)
+-- VIEW 2: VW_WAITLIST_SUMMARY
 -- Purpose: Quick overview of waitlisted bookings
--- ============================================================
 CREATE OR REPLACE VIEW VW_WAITLIST_SUMMARY AS
 SELECT 
     t.train_number,
@@ -58,10 +54,8 @@ GROUP BY
     t.train_number, t.source_station, t.dest_station, r.travel_date, r.seat_class;
 /
 
--- ============================================================
--- VIEW 3: VW_PASSENGER_BOOKINGS (Simple - 2 joins)
+-- VIEW 3: VW_PASSENGER_BOOKINGS
 -- Purpose: Passenger booking summary
--- ============================================================
 CREATE OR REPLACE VIEW VW_PASSENGER_BOOKINGS AS
 SELECT 
     p.passenger_id,
@@ -80,10 +74,8 @@ GROUP BY
     p.passenger_id, p.first_name, p.last_name, p.email, p.phone;
 /
 
--- ============================================================
--- VIEW 4: VW_REVENUE_BY_TRAIN (Simple - 2 joins)
+-- VIEW 4: VW_REVENUE_BY_TRAIN
 -- Purpose: Revenue summary per train
--- ============================================================
 CREATE OR REPLACE VIEW VW_REVENUE_BY_TRAIN AS
 SELECT 
     t.train_number,
@@ -102,10 +94,8 @@ GROUP BY
     t.train_number, t.source_station, t.dest_station;
 /
 
--- ============================================================
--- VIEW 5: VW_BOOKING_STATUS_SUMMARY (Simple - 1 table)
+-- VIEW 5: VW_BOOKING_STATUS_SUMMARY
 -- Purpose: Overall booking status counts
--- ============================================================
 CREATE OR REPLACE VIEW VW_BOOKING_STATUS_SUMMARY AS
 SELECT 
     travel_date,
@@ -126,11 +116,3 @@ GRANT SELECT ON VW_WAITLIST_SUMMARY TO crs_report_role;
 GRANT SELECT ON VW_PASSENGER_BOOKINGS TO crs_report_role;
 GRANT SELECT ON VW_REVENUE_BY_TRAIN TO crs_report_role;
 GRANT SELECT ON VW_BOOKING_STATUS_SUMMARY TO crs_report_role;
-
-GRANT SELECT ON VW_TRAIN_OCCUPANCY TO crs_operations_role;
-GRANT SELECT ON VW_WAITLIST_SUMMARY TO crs_operations_role;
-GRANT SELECT ON VW_REVENUE_BY_TRAIN TO crs_operations_role;
-
--- Verify views created
-SELECT view_name FROM user_views ORDER BY view_name;
-/

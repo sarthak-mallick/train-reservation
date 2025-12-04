@@ -1,6 +1,6 @@
 -- Test Suite: PKG_PASSENGER
 -- Purpose: Demonstrate all exception scenarios and validations
--- Run as: CRS_DATA or user with execute permission
+-- Run as: CRS_AGENT
 
 SET SERVEROUTPUT ON SIZE UNLIMITED;
 
@@ -428,12 +428,12 @@ BEGIN
     END IF;
 
     -- CLEANUP
-    DBMS_OUTPUT.PUT_LINE('');
-    DBMS_OUTPUT.PUT_LINE('CLEANUP');
+    -- DBMS_OUTPUT.PUT_LINE('');
+    -- DBMS_OUTPUT.PUT_LINE('CLEANUP');
     
-    DELETE FROM crs_admin.CRS_PASSENGER WHERE email LIKE '%@example.com';
-    COMMIT;
-    DBMS_OUTPUT.PUT_LINE('Test data cleaned up.');
+    -- DELETE FROM crs_admin.CRS_PASSENGER WHERE email LIKE '%@example.com';
+    -- COMMIT;
+    -- DBMS_OUTPUT.PUT_LINE('Test data cleaned up.');
 
     -- SUMMARY
     DBMS_OUTPUT.PUT_LINE('');
