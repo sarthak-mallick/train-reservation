@@ -39,9 +39,7 @@ DECLARE
     v_waitlist_position NUMBER;
     v_message VARCHAR2(500);
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('==============================================');
     DBMS_OUTPUT.PUT_LINE('TEST 2: Duplicate Booking Prevention');
-    DBMS_OUTPUT.PUT_LINE('==============================================');
     
     CRS_ADMIN.PKG_BOOKING.book_ticket(
         p_passenger_id => 1,  -- Same passenger as Test 1
@@ -57,7 +55,6 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Status: ' || v_status);
     DBMS_OUTPUT.PUT_LINE('Message: ' || v_message);
     DBMS_OUTPUT.PUT_LINE('Expected: FAILED - duplicate booking error');
-    DBMS_OUTPUT.PUT_LINE('==============================================');
     DBMS_OUTPUT.PUT_LINE('');
 END;
 /
@@ -70,9 +67,7 @@ DECLARE
     v_waitlist_position NUMBER;
     v_message VARCHAR2(500);
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('==============================================');
     DBMS_OUTPUT.PUT_LINE('TEST 3: Fill Seats (book 39 more tickets)');
-    DBMS_OUTPUT.PUT_LINE('==============================================');
     
     -- Use passengers 2-40 (39 passengers total)
     FOR i IN 2..40 LOOP
@@ -95,7 +90,6 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Booked 39 more tickets.');
     DBMS_OUTPUT.PUT_LINE('Last booking - Passenger ' || 40 || ': Status=' || v_status);
     DBMS_OUTPUT.PUT_LINE('Total FC seats should now be 40/40 (FULL)');
-    DBMS_OUTPUT.PUT_LINE('==============================================');
     DBMS_OUTPUT.PUT_LINE('');
 END;
 /

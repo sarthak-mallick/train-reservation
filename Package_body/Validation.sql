@@ -1,8 +1,6 @@
 CREATE OR REPLACE PACKAGE BODY PKG_VALIDATION AS
 
-/* ============================================================
-   VALIDATE BOOKING REQUEST
-   ============================================================ */
+-- VALIDATE BOOKING REQUEST
 FUNCTION validate_booking_request(
     p_train_id IN NUMBER,
     p_passenger_id IN NUMBER,
@@ -16,9 +14,7 @@ FUNCTION validate_booking_request(
     v_sched_count       NUMBER;
     v_duplicate_count   NUMBER;
 BEGIN
-    --------------------------------------------------------------------
     -- 1. Check if train exists
-    --------------------------------------------------------------------
     SELECT COUNT(*) INTO v_train_count
     FROM CRS_TRAIN_INFO
     WHERE train_id = p_train_id;
@@ -27,9 +23,7 @@ BEGIN
         RETURN 'Train does not exist.';
     END IF;
 
-    --------------------------------------------------------------------
     -- 2. Check if passenger exists
-    --------------------------------------------------------------------
     SELECT COUNT(*) INTO v_passenger_count
     FROM CRS_PASSENGER
     WHERE passenger_id = p_passenger_id;
@@ -38,37 +32,27 @@ BEGIN
         RETURN 'Passenger does not exist.';
     END IF;
 
-    --------------------------------------------------------------------
     -- 3. Validate seat class
-    --------------------------------------------------------------------
     IF p_seat_class NOT IN ('FC', 'ECON') THEN
         RETURN 'Invalid seat class.';
     END IF;
 
-    --------------------------------------------------------------------
     -- 4. Check if travel date is in future
-    --------------------------------------------------------------------
     IF TRUNC(p_travel_date) < TRUNC(p_booking_date) THEN
         RETURN 'Travel date must be in the future.';
     END IF;
 
-    --------------------------------------------------------------------
     -- 5. Travel date within 7-day booking window
-    --------------------------------------------------------------------
     IF TRUNC(p_travel_date) > TRUNC(p_booking_date) + C_ADVANCE_BOOKING_DAYS THEN
         RETURN 'Travel date exceeds 7-day booking window.';
     END IF;
 
-    --------------------------------------------------------------------
     -- 6. Check train runs on the travel day
-    --------------------------------------------------------------------
     IF NOT is_train_operating(p_train_id, p_travel_date) THEN
         RETURN 'Train does not operate on this day.';
     END IF;
 
-    --------------------------------------------------------------------
     -- 7: Check for duplicate booking
-    --------------------------------------------------------------------
     SELECT COUNT(*) INTO v_duplicate_count
     FROM CRS_RESERVATION
     WHERE passenger_id = p_passenger_id
@@ -88,32 +72,24 @@ EXCEPTION
 END validate_booking_request;
 
 
-/* ============================================================
-   VALIDATE CANCELLATION
-   ============================================================ */
+-- VALIDATE CANCELLATION
 FUNCTION validate_cancellation(
     p_booking_id IN NUMBER
 ) RETURN VARCHAR2 AS
     v_seat_status   VARCHAR2(20);
     v_travel_date   DATE;
 BEGIN
-    --------------------------------------------------------------------
     -- 1. Check if booking exists
-    --------------------------------------------------------------------
     SELECT seat_status, travel_date INTO v_seat_status, v_travel_date
     FROM CRS_RESERVATION
     WHERE booking_id = p_booking_id;
 
-    --------------------------------------------------------------------
     -- 2. Check if already cancelled
-    --------------------------------------------------------------------
     IF v_seat_status = 'CANCELLED' THEN
         RETURN 'Booking already cancelled.';
     END IF;
 
-    --------------------------------------------------------------------
     -- 3: Check cancellation deadline
-    --------------------------------------------------------------------
     IF TRUNC(v_travel_date) = TRUNC(SYSDATE) THEN
         RETURN 'Cannot cancel on the day of travel.';
     END IF;
@@ -127,10 +103,7 @@ EXCEPTION
         RETURN 'Error: ' || SQLERRM;
 END validate_cancellation;
 
-
-/* ============================================================
-   CHECK SEAT AVAILABILITY
-   ============================================================ */
+-- CHECK SEAT AVAILABILITY
 FUNCTION check_seat_availability(
     p_train_id IN NUMBER,
     p_travel_date IN DATE,
@@ -159,9 +132,7 @@ EXCEPTION
 END check_seat_availability;
 
 
-/* ============================================================
-   GET AVAILABLE SEATS
-   ============================================================ */
+-- GET AVAILABLE SEATS
 FUNCTION get_available_seats(
     p_train_id IN NUMBER,
     p_travel_date IN DATE,
@@ -170,9 +141,7 @@ FUNCTION get_available_seats(
     v_total_seats NUMBER;
     v_confirmed NUMBER;
 BEGIN
-    --------------------------------------------------------------------
     -- 1. Get total seats from train master
-    --------------------------------------------------------------------
     IF p_seat_class = 'FC' THEN
         SELECT total_fc_seats INTO v_total_seats
         FROM CRS_TRAIN_INFO WHERE train_id = p_train_id;
@@ -181,9 +150,7 @@ BEGIN
         FROM CRS_TRAIN_INFO WHERE train_id = p_train_id;
     END IF;
 
-    --------------------------------------------------------------------
     -- 2. Count confirmed seats
-    --------------------------------------------------------------------
     SELECT COUNT(*) INTO v_confirmed
     FROM CRS_RESERVATION
     WHERE train_id = p_train_id
@@ -199,9 +166,7 @@ EXCEPTION
 END get_available_seats;
 
 
-/* ============================================================
-   GET WAITLIST COUNT
-   ============================================================ */
+-- GET WAITLIST COUNT
 FUNCTION get_waitlist_count(
     p_train_id IN NUMBER,
     p_travel_date IN DATE,
@@ -225,9 +190,7 @@ EXCEPTION
 END get_waitlist_count;
 
 
-/* ============================================================
-   GET NEXT WAITLIST POSITION
-   ============================================================ */
+-- GET NEXT WAITLIST POSITION
 FUNCTION get_next_waitlist_position(
     p_train_id IN NUMBER,
     p_travel_date IN DATE,
@@ -250,9 +213,9 @@ EXCEPTION
         RETURN 1;
 END get_next_waitlist_position;
 
-/******************************************************************
- *  CHECK TRAIN OPERATING ON DATE
- ******************************************************************/
+
+-- CHECK TRAIN OPERATING ON DATE
+
 FUNCTION is_train_operating(
     p_train_id IN NUMBER,
     p_travel_date IN DATE
