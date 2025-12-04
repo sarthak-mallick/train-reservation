@@ -6,32 +6,9 @@
 -- ======================================================================
 
  
-    // TEST 1 — add_train() //
+    -- TEST 1 — add_train() 
 
-// Test Case 1A — Valid train
-
-DECLARE
-  v_err VARCHAR2(200);
-  v_id NUMBER;
-BEGIN
-  v_id := PKG_TRAIN.add_train(
-    p_train_number => 'A101',
-    p_source_station => 'CHENNAI',
-    p_dest_station => 'BANGALORE',
-    p_total_fc_seats => 10,
-    p_total_econ_seats => 20,
-    p_fc_seat_fare => 1000,
-    p_econ_seat_fare => 500,
-    p_error_msg => v_err
-  );
-
-  DBMS_OUTPUT.PUT_LINE('Train ID: ' || v_id);
-  DBMS_OUTPUT.PUT_LINE('Message: ' || v_err);
-END;
-/
-
-
-// Test Case 1B — Duplicate Train Number //
+-- Test Case 1A — Valid train
 
 DECLARE
   v_err VARCHAR2(200);
@@ -53,7 +30,30 @@ BEGIN
 END;
 /
 
-// Test Case 3 Checking valid source and destinaiton //
+
+-- Test Case 1B — Duplicate Train Number
+
+DECLARE
+  v_err VARCHAR2(200);
+  v_id NUMBER;
+BEGIN
+  v_id := PKG_TRAIN.add_train(
+    p_train_number => 'A101',
+    p_source_station => 'CHENNAI',
+    p_dest_station => 'BANGALORE',
+    p_total_fc_seats => 10,
+    p_total_econ_seats => 20,
+    p_fc_seat_fare => 1000,
+    p_econ_seat_fare => 500,
+    p_error_msg => v_err
+  );
+
+  DBMS_OUTPUT.PUT_LINE('Train ID: ' || v_id);
+  DBMS_OUTPUT.PUT_LINE('Message: ' || v_err);
+END;
+/
+
+-- Test Case 3 Checking valid source and destinaiton
 
 DECLARE
   v_err VARCHAR2(200);
@@ -77,9 +77,9 @@ END;
 
 
 
-    // TEST 2 — update_fare() //
+    -- TEST 2 — update_fare()
 
-// Case 2A — Valid update //
+-- Case 2A — Valid update 
 
 DECLARE
   v_msg VARCHAR2(200);
@@ -96,7 +96,7 @@ BEGIN
 END;
 /
 
-// Case 2B — Train does not exist //
+-- Case 2B — Train does not exist
 
 DECLARE
   v_msg VARCHAR2(200);
@@ -108,9 +108,9 @@ END;
 /
 
 
-    // TEST 3 — add_train_to_schedule() //
+    -- TEST 3 — add_train_to_schedule()
 
-// Case 3A — Valid add //
+-- Case 3A — Valid add
 
 DECLARE
   v_msg VARCHAR2(200);
@@ -125,7 +125,7 @@ BEGIN
 END;
 /
 
-// Case 3B — Duplicate add //
+-- Case 3B — Duplicate add
 
 DECLARE
   v_msg VARCHAR2(200);
@@ -141,7 +141,7 @@ END;
 /
 
 
-// TEST 4 — cancel_train_on_date() //
+-- TEST 4 — cancel_train_on_date()
 
 DECLARE
   v_cnt NUMBER;
@@ -166,7 +166,7 @@ END;
 /
 
 
-// TEST 5 — remove_train_from_schedule() //
+-- TEST 5 — remove_train_from_schedule()
 
 DECLARE
   v_msg VARCHAR2(200);
@@ -185,6 +185,97 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('Msg: ' || v_msg);
 END;
 /
+
+    -- TEST 6 — add_train_to_schedule() Negative Cases
+
+-- 6A — Train does not exist
+
+DECLARE
+  v_msg VARCHAR2(200);
+  v_ok  BOOLEAN;
+BEGIN
+  PKG_TRAIN.add_train_to_schedule(9999, 1, v_ok, v_msg);
+  DBMS_OUTPUT.PUT_LINE('Add Schedule (Invalid Train) → ' || v_msg);
+END;
+/
+
+-- 6B — Invalid schedule ID
+
+DECLARE
+  v_msg VARCHAR2(200);
+  v_ok  BOOLEAN;
+BEGIN
+  PKG_TRAIN.add_train_to_schedule(1, 99, v_ok, v_msg);
+  DBMS_OUTPUT.PUT_LINE('Add Schedule (Invalid Sch ID) → ' || v_msg);
+END;
+/
+
+
+-- TEST 7 — cancel_train_on_date() Negative Cases
+
+-- 7A — Train does not exist
+
+DECLARE
+  v_cnt NUMBER;
+  v_ok  BOOLEAN;
+  v_msg VARCHAR2(200);
+BEGIN
+  PKG_TRAIN.cancel_train_on_date(9999, DATE '2025-12-10', 'Test', v_cnt, v_ok, v_msg);
+  DBMS_OUTPUT.PUT_LINE('Cancel (Invalid Train) → ' || v_msg);
+END;
+/
+
+
+-- 7B — Train not scheduled on that date
+DECLARE
+  v_cnt NUMBER;
+  v_ok  BOOLEAN;
+  v_msg VARCHAR2(200);
+BEGIN
+  PKG_TRAIN.cancel_train_on_date(1, DATE '2030-01-01', 'Test', v_cnt, v_ok, v_msg);
+  DBMS_OUTPUT.PUT_LINE('Cancel (Not Scheduled) → ' || v_msg);
+END;
+/
+
+
+-- TEST 8 — remove_train_from_schedule() Negative Cases
+
+-- 8A — Schedule ID not found
+
+DECLARE
+  v_msg VARCHAR2(200);
+  v_ok  BOOLEAN;
+BEGIN
+  PKG_TRAIN.remove_train_from_schedule(1, 9999, v_ok, v_msg);
+  DBMS_OUTPUT.PUT_LINE('Remove Schedule (Invalid Sch ID) → ' || v_msg);
+END;
+/
+
+-- 8B — Train has active bookings (should fail)
+
+DECLARE
+  v_msg VARCHAR2(200);
+  v_ok  BOOLEAN;
+BEGIN
+  PKG_TRAIN.remove_train_from_schedule(1, 1, v_ok, v_msg);
+  DBMS_OUTPUT.PUT_LINE('Remove Schedule (Bookings Active) → ' || v_msg);
+END;
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
