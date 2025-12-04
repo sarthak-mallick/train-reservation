@@ -57,7 +57,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PASSENGER AS
     BEGIN
         p_error_msg := NULL;
 
-        -- 1. Validate whitespace-only values (DDL allows '   ' but we shouldn't)
+        -- 1. Validate whitespace-only values
         IF TRIM(p_first_name) IS NULL OR TRIM(p_last_name) IS NULL OR
            TRIM(p_address_line1) IS NULL OR TRIM(p_address_city) IS NULL OR
            TRIM(p_address_state) IS NULL OR TRIM(p_address_zip) IS NULL OR
@@ -66,25 +66,25 @@ CREATE OR REPLACE PACKAGE BODY PKG_PASSENGER AS
             RETURN -1;
         END IF;
 
-        -- 2. Validate email format (DDL has no format check)
+        -- 2. Validate email format
         IF NOT is_valid_email(TRIM(p_email)) THEN
             p_error_msg := 'Invalid email format.';
             RETURN -1;
         END IF;
 
-        -- 3. Validate phone format (DDL has no format check)
+        -- 3. Validate phone format
         IF NOT is_valid_phone(TRIM(p_phone)) THEN
             p_error_msg := 'Invalid phone format. Must have at least 10 digits.';
             RETURN -1;
         END IF;
 
-        -- 4. Validate date of birth (DDL has no future/age check)
+        -- 4. Validate date of birth
         IF NOT is_valid_dob(p_date_of_birth) THEN
             p_error_msg := 'Invalid date of birth.';
             RETURN -1;
         END IF;
 
-        -- 5. Insert passenger (DDL handles NOT NULL and UNIQUE constraints)
+        -- 5. Insert passenger
         INSERT INTO CRS_PASSENGER (
             first_name, middle_name, last_name, date_of_birth,
             address_line1, address_city, address_state, address_zip,
@@ -174,7 +174,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_PASSENGER AS
             RETURN FALSE;
         END IF;
 
-        -- 6. Perform update (DDL handles UNIQUE constraints)
+        -- 6. Perform update
         UPDATE CRS_PASSENGER
         SET address_line1 = TRIM(p_address_line1),
             address_city  = TRIM(p_address_city),
